@@ -54,10 +54,13 @@ class FileListContainer(var path: String) extends FilerOperation {
     centerSelectionToLeftAndRightList(path, files)
   }
 
+  /**
+    * 現在のファイル内容でリストを再描画する
+    */
   private[this] def redrawCenterList(): Unit = {
     // 選択範囲を保存する
     val selection = CenterList.selection
-    val cells = selection.cells
+    val cells = selection.cells.clone()
     Main.appendLog(this, s"cells = ${cells}")
     // 真ん中
     FileListContainer.setPath(centorFileList, CenterList, CenterColumns)
