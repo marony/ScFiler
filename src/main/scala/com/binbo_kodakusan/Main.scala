@@ -19,6 +19,10 @@ object Main extends SimpleSwingApplication {
       new ScrollPane(LogArea))
   }
 
+  /**
+    * ログ表示コントロールの作成
+    * @return
+    */
   def createLogArea(): TextArea = {
     new TextArea() {
       maximumSize = new Dimension(Short.MaxValue, 5000)
@@ -26,6 +30,12 @@ object Main extends SimpleSwingApplication {
     }
   }
 
+  /**
+    * ログを表示
+    *
+    * @param source
+    * @param log
+    */
   def appendLog(source: AnyRef, log: String): Unit = {
     LogArea.text = LogArea.text + "\r\n" + log
   }
