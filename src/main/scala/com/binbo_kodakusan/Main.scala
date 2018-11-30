@@ -1,6 +1,6 @@
 package com.binbo_kodakusan
 
-import scala.swing.{BoxPanel, Dimension, MainFrame, Orientation, ScrollPane, SimpleSwingApplication, Table, TextArea}
+import scala.swing.{SplitPane, BoxPanel, Dimension, MainFrame, Orientation, ScrollPane, SimpleSwingApplication, Table, TextArea}
 
 object Main extends SimpleSwingApplication {
   setSystemLookAndFeel()
@@ -11,12 +11,12 @@ object Main extends SimpleSwingApplication {
 
   def top = new MainFrame {
     title = "ScFiler"
-    minimumSize = new Dimension(300, 200)
+    minimumSize = new Dimension(600, 400)
 
-    contents = new BoxPanel(Orientation.Vertical) {
-      contents += filerContainer.Control
-      contents += new ScrollPane(LogArea)
-    }
+    contents = new SplitPane(
+      Orientation.Horizontal,
+      filerContainer.Control,
+      new ScrollPane(LogArea))
   }
 
   def createLogArea(): TextArea = {
