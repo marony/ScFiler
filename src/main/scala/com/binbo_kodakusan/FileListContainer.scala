@@ -182,7 +182,17 @@ class FileListContainer(var path: String) extends FilerOperation {
   }
 
   def operationKeyToggleAllMarks(): Unit = {
-    ???
+    if (centorFileList.nonEmpty) {
+      centorFileList.zipWithIndex.foreach { case (file, row) => {
+        file match {
+          case FileInfo(path, name, mark) =>
+            centorFileList = centorFileList.updated(row, FileInfo(path, name, Mark(!mark.value)))
+          case DirectoryInfo(path, name, mark) =>
+            centorFileList = centorFileList.updated(row, DirectoryInfo(path, name, Mark(!mark.value)))
+        }
+      }}
+      redrawCenterList()
+    }
   }
 
   def operationKeyVisualMode(): Unit = {
