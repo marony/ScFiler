@@ -45,14 +45,14 @@ class KeyToAction[T <: FilerOperation](o: T) {
           KeyInfo('g', 0),
         ),
         () => o.operationKeyTop(),
-        "カーソルを先頭に移動"
+        "カーソルを先頭行に移動"
       ),
       KeyToActionMapping(
         Seq(
           KeyInfo('G', 0),
         ),
         () => o.operationKeyBottom(),
-        "カーソルを最後に移動"
+        "カーソルを最終行に移動"
       ),
       KeyToActionMapping(
         Seq(
@@ -73,14 +73,14 @@ class KeyToAction[T <: FilerOperation](o: T) {
           KeyInfo('h', 0),
         ),
         () => o.operationKeyParent(),
-        "親に移動"
+        "親ディレクトリに移動"
       ),
       KeyToActionMapping(
         Seq(
           KeyInfo('l', 0),
         ),
         () => o.operationKeyChild(),
-        "子に移動"
+        "子ディレクトリに移動"
       ),
       KeyToActionMapping(
         Seq(
