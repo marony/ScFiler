@@ -82,6 +82,27 @@ class KeyToAction[T <: FilerOperation](o: T) {
         () => o.operationKeyChild(),
         "子に移動"
       ),
+      KeyToActionMapping(
+        Seq(
+          KeyInfo(' ', 0),
+        ),
+        () => o.operationKeyToggleMark(),
+        "マークを付ける/外す"
+      ),
+      KeyToActionMapping(
+        Seq(
+          KeyInfo('v', 0),
+        ),
+        () => o.operationKeyToggleAllMarks(),
+        "全てのマークをトグル"
+      ),
+      KeyToActionMapping(
+        Seq(
+          KeyInfo('V', 0),
+        ),
+        () => o.operationKeyVisualMode(),
+        "ヴィジュアルモード"
+      ),
     )
 
   /**

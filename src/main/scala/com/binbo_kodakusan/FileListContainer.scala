@@ -4,7 +4,6 @@ import javax.swing.table.{AbstractTableModel, DefaultTableModel, TableColumn}
 
 import scala.swing.{BoxPanel, Component, Dimension, Orientation, ScrollPane, Table, TextArea, TextField}
 import scala.swing.event.{EditDone, Key, KeyTyped, TableRowsSelected}
-import collection.JavaConverters._
 import java.io.File
 
 /**
@@ -55,6 +54,18 @@ class FileListContainer(var path: String) extends FilerOperation {
     centerSelectionToLeftAndRightList(path, files)
   }
 
+  private[this] def redrawCenterList(): Unit = {
+    // 選択範囲を保存する
+    val selection = CenterList.selection
+    val cells = selection.cells
+    Main.appendLog(this, s"cells = ${cells}")
+    // 真ん中
+    FileListContainer.setPath(centorFileList, CenterList, CenterColumns)
+    // 選択範囲を復活する
+    cells.foreach { case (row, column) =>
+      CenterList.peer.changeSelection(row, 0, false, false) }
+  }
+
   /**
     * 真ん中のリストの選択行から左右のリストのファイル一覧を表示
     *
@@ -77,9 +88,9 @@ class FileListContainer(var path: String) extends FilerOperation {
       cells.foreach { case (row, column) => {
         val selectedFile = files(row)
         val childFiles = selectedFile match {
-          case DirectoryInfo(FullPath(path), FileName(FileUtils.ParentPath)) =>
+          case DirectoryInfo(FullPath(path), FileName(FileUtils.ParentPath), _) =>
             Seq.empty[ItemInfo]
-          case DirectoryInfo(FullPath(path), FileName(name)) =>
+          case DirectoryInfo(FullPath(path), FileName(name), _) =>
             FileUtils.getDirectoryContents(path)
           case _ => Seq.empty[ItemInfo]
         }
@@ -94,14 +105,14 @@ class FileListContainer(var path: String) extends FilerOperation {
 
   def operationKeyTop(): Unit = {
     if (centorFileList.nonEmpty) {
-      CenterList.peer.changeSelection(0, 0, true, false)
+      CenterList.peer.changeSelection(0, 0, false, false)
       centerSelectionToLeftAndRightList(centerPath, centorFileList)
     }
   }
 
   def operationKeyBottom(): Unit = {
     if (centorFileList.nonEmpty) {
-      CenterList.peer.changeSelection(centorFileList.length - 1, 0, true, false)
+      CenterList.peer.changeSelection(centorFileList.length - 1, 0, false, false)
       centerSelectionToLeftAndRightList(centerPath, centorFileList)
     }
   }
@@ -111,7 +122,7 @@ class FileListContainer(var path: String) extends FilerOperation {
     if (centorFileList.nonEmpty && cells.nonEmpty) {
       cells.foreach { case (row, column) => {
         if (row > 0) {
-          CenterList.peer.changeSelection(row - 1, 0, true, false)
+          CenterList.peer.changeSelection(row - 1, 0, false, false)
           centerSelectionToLeftAndRightList(centerPath, centorFileList)
         }
       }}
@@ -123,7 +134,7 @@ class FileListContainer(var path: String) extends FilerOperation {
     if (centorFileList.nonEmpty && cells.nonEmpty) {
       cells.foreach { case (row, column) => {
         if (row < centorFileList.length - 1) {
-          CenterList.peer.changeSelection(row + 1, 0, true, false)
+          CenterList.peer.changeSelection(row + 1, 0, false, false)
           centerSelectionToLeftAndRightList(centerPath, centorFileList)
         }
       }}
@@ -143,12 +154,36 @@ class FileListContainer(var path: String) extends FilerOperation {
       cells.foreach { case (row, column) => {
         val selectedFile = centorFileList(row)
         selectedFile match {
-          case DirectoryInfo(FullPath(path), FileName(name)) =>
+          case DirectoryInfo(FullPath(path), FileName(name), _) =>
             setPathToLists(path)
           case _ => // ファイルなので何もしない
         }
       }}
     }
+  }
+
+  def operationKeyToggleMark(): Unit = {
+    val cells = CenterList.selection.cells
+    if (centorFileList.nonEmpty && cells.nonEmpty) {
+      cells.foreach { case (row, column) => {
+        val selectedFile = centorFileList(row)
+        selectedFile match {
+          case FileInfo(path, name, mark) =>
+            centorFileList = centorFileList.updated(row, FileInfo(path, name, Mark(!mark.value)))
+          case DirectoryInfo(path, name, mark) =>
+            centorFileList = centorFileList.updated(row, DirectoryInfo(path, name, Mark(!mark.value)))
+        }
+      }}
+      redrawCenterList()
+    }
+  }
+
+  def operationKeyToggleAllMarks(): Unit = {
+    ???
+  }
+
+  def operationKeyVisualMode(): Unit = {
+    ???
   }
 
   /**
@@ -256,10 +291,14 @@ object FileListContainer {
     */
   private def convertFileList(files: Seq[ItemInfo]): Array[Array[AnyRef]] = {
     files.map {
-      case FileInfo(FullPath(path), FileName(name)) =>
+      case FileInfo(FullPath(path), FileName(name), Mark(false)) =>
         Array(name, "FILE")
-      case DirectoryInfo(FullPath(path), FileName(name)) =>
+      case FileInfo(FullPath(path), FileName(name), Mark(true)) =>
+        Array("* " + name, "FILE")
+      case DirectoryInfo(FullPath(path), FileName(name), Mark(false)) =>
         Array(name, "DIRECTORY")
+      case DirectoryInfo(FullPath(path), FileName(name), Mark(true)) =>
+        Array("* " + name, "DIRECTORY")
     }.toArray.asInstanceOf[Array[Array[AnyRef]]]
   }
 

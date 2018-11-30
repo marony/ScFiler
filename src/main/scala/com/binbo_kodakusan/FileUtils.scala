@@ -52,7 +52,8 @@ object FileUtils {
     if (p.getParent != null)
       DirectoryInfo(
         FullPath(FileUtils.combine(path, FileUtils.ParentPath)),
-        FileName(FileUtils.ParentPath)) +: r
+        FileName(FileUtils.ParentPath),
+        Mark(false)) +: r
     else
       r
   }
