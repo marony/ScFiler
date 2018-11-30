@@ -77,8 +77,9 @@ class FileListContainer(var path: String) extends FilerOperation {
       cells.foreach { case (row, column) => {
         val selectedFile = files(row)
         val childFiles = selectedFile match {
-          case DirectoryInfo(path, "..") => Seq.empty[ItemInfo]
-          case DirectoryInfo(path, name) =>
+          case DirectoryInfo(FullPath(path), FileName(FileUtils.ParentPath)) =>
+            Seq.empty[ItemInfo]
+          case DirectoryInfo(FullPath(path), FileName(name)) =>
             FileUtils.getDirectoryContents(path)
           case _ => Seq.empty[ItemInfo]
         }
@@ -142,7 +143,8 @@ class FileListContainer(var path: String) extends FilerOperation {
       cells.foreach { case (row, column) => {
         val selectedFile = centorFileList(row)
         selectedFile match {
-          case DirectoryInfo(path, name) => setPathToLists(path)
+          case DirectoryInfo(FullPath(path), FileName(name)) =>
+            setPathToLists(path)
           case _ => // ファイルなので何もしない
         }
       }}
@@ -254,8 +256,10 @@ object FileListContainer {
     */
   private def convertFileList(files: Seq[ItemInfo]): Array[Array[AnyRef]] = {
     files.map {
-      case FileInfo(path, name) => Array(name, "FILE")
-      case DirectoryInfo(path, name) => Array(name, "DIRECTORY")
+      case FileInfo(FullPath(path), FileName(name)) =>
+        Array(name, "FILE")
+      case DirectoryInfo(FullPath(path), FileName(name)) =>
+        Array(name, "DIRECTORY")
     }.toArray.asInstanceOf[Array[Array[AnyRef]]]
   }
 

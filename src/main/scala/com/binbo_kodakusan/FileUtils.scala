@@ -6,6 +6,23 @@ import java.io.File
   * ファイル・ディレクトリ関連ユーティリティ
   */
 object FileUtils {
+  val ParentPath = ".."
+
+  def combine(path: String*): String = {
+    val sb = new StringBuilder
+    path.foreach(p => {
+      var sep = ""
+      if ((sb.length <= 0 || sb(sb.length - 1) != File.separatorChar) &&
+        (p.length <= 0 || p(0) != File.separatorChar)) {
+        sep = File.separator
+      }
+      if (sb.length > 0)
+        sb ++= sep
+      sb ++= p
+    })
+    sb.toString
+  }
+
   /**
     * ユーザのホームディレクトリを取得する
     *
@@ -33,7 +50,9 @@ object FileUtils {
     }
 
     if (p.getParent != null)
-      DirectoryInfo(path + File.separator + "..", "..") +: r
+      DirectoryInfo(
+        FullPath(FileUtils.combine(path, FileUtils.ParentPath)),
+        FileName(FileUtils.ParentPath)) +: r
     else
       r
   }

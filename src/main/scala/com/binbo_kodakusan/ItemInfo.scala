@@ -2,12 +2,14 @@ package com.binbo_kodakusan
 
 import java.io.File
 
+case class FullPath(value: String)
+case class FileName(value: String)
 /**
   * アイテム
   */
 sealed trait ItemInfo {
-  val Path: String
-  val Name: String
+  val Path: FullPath
+  val Name: FileName
 }
 
 /**
@@ -16,11 +18,12 @@ sealed trait ItemInfo {
   * @param Path
   * @param Name
   */
-case class FileInfo(val Path: String, val Name: String)
+case class FileInfo(val Path: FullPath, val Name: FileName)
   extends ItemInfo
 
 object FileInfo {
-  def apply(f: File) = new FileInfo(f.getPath, f.getName)
+  def apply(f: File) =
+    new FileInfo(FullPath(f.getPath), FileName(f.getName))
 }
 
 /**
@@ -29,9 +32,10 @@ object FileInfo {
   * @param Path
   * @param Name
   */
-case class DirectoryInfo(val Path: String, val Name: String)
+case class DirectoryInfo(val Path: FullPath, val Name: FileName)
   extends ItemInfo
 
 object DirectoryInfo {
-  def apply(f: File) = new DirectoryInfo(f.getPath, f.getName)
+  def apply(f: File) =
+    new DirectoryInfo(FullPath(f.getPath), FileName(f.getName))
 }
