@@ -6,6 +6,8 @@ import scala.swing.{BoxPanel, Component, Dimension, Orientation, ScrollPane, Tab
 import scala.swing.event.{EditDone, Key, KeyTyped, TableRowsSelected}
 import java.io.File
 
+import scala.collection.mutable
+
 /**
   * ディレクトリパスエディットとファイルリストのコンテナ
   *
@@ -17,6 +19,7 @@ class FileListContainer(var path: String) extends FilerOperation {
 
   private[this] var centerPath: String = FileUtils.getHomeDirectory
   private[this] var centorFileList: Seq[ItemInfo] = IndexedSeq.empty
+  private[this] var copiedFileList: Seq[ItemInfo] = IndexedSeq.empty
 
   val Edit: TextField = createPathTextBox(path)
   val LeftList: Table = createFileList()
@@ -44,12 +47,26 @@ class FileListContainer(var path: String) extends FilerOperation {
     * @param path
     */
   private[this] def setPathToLists(path: String): Unit = {
+    var cells: mutable.Set[(Int, Int)] = null
+    if (centerPath == path) {
+      // 選択範囲を保存する
+      val selection = CenterList.selection
+      cells = selection.cells.clone()
+    }
+
     Edit.text = path
     centerPath = path
     val files = FileUtils.getDirectoryContents(path)
     centorFileList = files
     // 真ん中
     FileListContainer.setPath(files, CenterList, CenterColumns)
+    if (cells != null) {
+      // 選択範囲を復活する
+      cells.foreach { case (row, column) =>
+        if (row >= 0 && row < files.length)
+          CenterList.peer.changeSelection(row, 0, false, false)
+      }
+    }
     // 左右
     centerSelectionToLeftAndRightList(path, files)
   }
@@ -66,7 +83,8 @@ class FileListContainer(var path: String) extends FilerOperation {
     FileListContainer.setPath(centorFileList, CenterList, CenterColumns)
     // 選択範囲を復活する
     cells.foreach { case (row, column) =>
-      CenterList.peer.changeSelection(row, 0, false, false) }
+      CenterList.peer.changeSelection(row, 0, false, false)
+    }
   }
 
   /**
@@ -199,6 +217,49 @@ class FileListContainer(var path: String) extends FilerOperation {
     ???
   }
 
+  def operationKeyCopyMarked(): Unit = {
+    if (centorFileList.nonEmpty) {
+      val markedFiles = centorFileList.filter(_.Mark.value)
+      if (markedFiles.length > 0) {
+        // マークされたファイルを処理
+        copiedFileList = IndexedSeq.empty
+        markedFiles.foreach(f => copiedFileList = copiedFileList :+ f)
+      } else {
+        // マークされたファイルがない場合はカーソル位置のファイルを処理
+        val cells = CenterList.selection.cells
+        cells.foreach { case (row, column) => {
+          val selectedFile = centorFileList(row)
+          copiedFileList = Seq(selectedFile)
+        }}
+      }
+    }
+  }
+
+  def operationKeyDeleteMarked(): Unit = {
+    if (centorFileList.nonEmpty) {
+      val markedFiles = centorFileList.filter(_.Mark.value)
+      if (markedFiles.length > 0) {
+        // マークされたファイルを処理
+        markedFiles.foreach(f => FileUtils.deleteFile(f))
+      } else {
+        // マークされたファイルがない場合はカーソル位置のファイルを処理
+        val cells = CenterList.selection.cells
+        cells.foreach { case (row, column) => {
+          val selectedFile = centorFileList(row)
+          FileUtils.deleteFile(selectedFile)
+        }}
+      }
+      setPathToLists(centerPath)
+    }
+  }
+
+  def operationKeyPaste(): Unit = {
+    if (copiedFileList.nonEmpty) {
+      copiedFileList.foreach(f => FileUtils.pasteFile(f, centerPath))
+      setPathToLists(centerPath)
+    }
+  }
+
   /**
     * ディレクトリパスエディットを作成する
     *
@@ -325,5 +386,18 @@ object FileListContainer {
     val columns_ = columns.toArray.asInstanceOf[Array[AnyRef]]
     val model = list.model.asInstanceOf[javax.swing.table.DefaultTableModel]
     model.setDataVector(files_, columns_)
+    // 選択範囲を調整する
+    var selectedIndex = -1
+    Main.appendLog(this, s"selectedIndex = ${selectedIndex}")
+    val cells = list.selection.cells
+    cells.foreach { case (row, column) => {
+      Main.appendLog(this, s"row = ${row}")
+      if (row >= 0 && row < files.length)
+        selectedIndex = row
+    }}
+    if (selectedIndex < 0)
+      selectedIndex = 0
+    Main.appendLog(this, s"changeSelection(${selectedIndex})")
+    list.peer.changeSelection(selectedIndex, 0, false, false)
   }
 }

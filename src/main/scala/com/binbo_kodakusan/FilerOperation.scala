@@ -13,4 +13,8 @@ trait FilerOperation {
   def operationKeyToggleMark(): Unit
   def operationKeyToggleAllMarks(): Unit
   def operationKeyVisualMode(): Unit
+
+  def operationKeyCopyMarked(): Unit
+  def operationKeyDeleteMarked(): Unit
+  def operationKeyPaste(): Unit
 }

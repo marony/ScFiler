@@ -103,6 +103,30 @@ class KeyToAction[T <: FilerOperation](o: T) {
         () => o.operationKeyVisualMode(),
         "ヴィジュアルモード"
       ),
+      KeyToActionMapping(
+        Seq(
+          KeyInfo('y', 0),
+          KeyInfo('y', 0),
+        ),
+        () => o.operationKeyCopyMarked(),
+        "選択/マークされているファイル/ディレクトリをコピー"
+      ),
+      KeyToActionMapping(
+        Seq(
+          KeyInfo('d', 0),
+          KeyInfo('d', 0),
+        ),
+        () => o.operationKeyDeleteMarked(),
+        "選択/マークされているファイル/ディレクトリを削除"
+      ),
+      KeyToActionMapping(
+        Seq(
+          KeyInfo('p', 0),
+          KeyInfo('p', 0),
+        ),
+        () => o.operationKeyPaste(),
+        "コピーしたファイル/ディレクトリをペースト"
+      ),
     )
 
   /**
